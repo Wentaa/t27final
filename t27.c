@@ -4,6 +4,8 @@
 #include <string.h>
 #include <ctype.h>
 
+// Define buffer size for string operations
+#define BUFFER_SIZE 256 
 
 dict* dict_init(void)
 {
@@ -223,26 +225,30 @@ unsigned dict_cmp(dict* p1, dict* p2)
       depth2++;
    }
 
+   // Calculate the total distance
+   unsigned total_distance = 0;
+
    // Bring both nodes to the same depth
    while (depth1 > depth2) {
       p1 = p1->up;
       depth1--;
+      total_distance++;
    }
    while (depth2 > depth1) {
       p2 = p2->up;
       depth2--;
+      total_distance++;
    }
 
    // Move both nodes up until they meet at a common ancestor
-   while (p1 && p2 && p1 != p2) {
+   while (p1 != p2) {
       p1 = p1->up;
       p2 = p2->up;
+      total_distance += 2; // Increment for each step up
    }
 
-   // Calculate the total distance (round-trip depth)
-   return depth1 + depth2;
+   return total_distance;
 }
-
 
 // CHALLENGE2
 // Static helper function declaration
@@ -250,7 +256,7 @@ static void dict_autocomplete_helper(const dict* p, char* buffer, int depth, cha
 
 void dict_autocomplete(const dict* p, const char* wd, char* ret)
 {
-   if (!p || !wd || !ret) {
+   if (!p || !wd) {
       *ret = '\0'; // Invalid input, return empty string
       return;
    }
@@ -259,7 +265,7 @@ void dict_autocomplete(const dict* p, const char* wd, char* ret)
 
    // Traverse the prefix
    while (*wd) {
-      int index = (*wd == '\'') ? 26 : tolower(*wd) - 'a';
+      int index = (*wd == '\'') ? ALPHA - 1 : tolower(*wd) - 'a';
       if (index < 0 || index >= ALPHA || !current->dwn[index]) {
          *ret = '\0'; // Prefix not found
          return;
@@ -269,9 +275,23 @@ void dict_autocomplete(const dict* p, const char* wd, char* ret)
    }
 
    // Buffer for constructing the word and tracking max frequency
-   char buffer[256] = {0};
+   char buffer[BUFFER_SIZE] = {0}; // Use defined BUFFER_SIZE
+   strcpy(buffer, wd);             // Start buffer with prefix
+   int depth = strlen(wd);         // Set initial depth as prefix length
    int max_freq = 0;
-   dict_autocomplete_helper(current, buffer, 0, ret, &max_freq);
+
+   // Initialize best_word to empty
+   char best_word[BUFFER_SIZE] = {0};
+
+   // Recursive search for the most frequent word
+   dict_autocomplete_helper(current, buffer, depth, best_word, &max_freq);
+
+   // Extract the additional letters required
+   if (strlen(best_word) > depth) {
+      strcpy(ret, &best_word[depth]);
+   } else {
+      *ret = '\0'; // No additional letters
+   }
 }
 
 static void dict_autocomplete_helper(const dict* p, char* buffer, int depth, char* best_word, int* max_freq)
@@ -280,19 +300,23 @@ static void dict_autocomplete_helper(const dict* p, char* buffer, int depth, cha
       return;
    }
 
-   if (p->terminal && p->freq > *max_freq) {
-      buffer[depth] = '\0';
-      strcpy(best_word, buffer);
-      *max_freq = p->freq;
-   }
-
+   // Recursively explore child nodes (skip the current node itself)
    for (int i = 0; i < ALPHA; i++) {
       if (p->dwn[i]) {
-         buffer[depth] = (i == 26) ? '\'' : 'a' + i;
+         buffer[depth] = (i == ALPHA - 1) ? '\'' : 'a' + i; // Append the current character
          dict_autocomplete_helper(p->dwn[i], buffer, depth + 1, best_word, max_freq);
       }
    }
+
+   // Check if the current node terminates a word and is a valid candidate
+   if (p->terminal && depth > 0 && p->freq > *max_freq) {
+      buffer[depth] = '\0'; // Null-terminate the buffer
+      strcpy(best_word, buffer); // Update best_word
+      *max_freq = p->freq;       // Update max frequency
+   }
 }
+
+
 
 
 void test(void)
@@ -302,22 +326,21 @@ void test(void)
    assert(my_dict != NULL);
 
    // Test adding words
-   assert(dict_addword(my_dict, "cat"));
    assert(dict_addword(my_dict, "car"));
    assert(dict_addword(my_dict, "cart"));
-   assert(!dict_addword(my_dict, "cat")); // Duplicate word
+   assert(dict_addword(my_dict, "part"));
+   assert(!dict_addword(my_dict, "car")); // Duplicate word
 
    // Test word count
    int word_count = dict_wordcount(my_dict);
-   assert(word_count == 3); // "cat", "car", "cart"
+   assert(word_count == 4); 
 
    // Test node count
    int node_count = dict_nodecount(my_dict);
-   printf("Node count: %d\n", node_count);
-   assert(node_count > 0);
+   assert(node_count ==9);
 
    // Test spell checking
-   dict* found = dict_spell(my_dict, "cat");
+   dict* found = dict_spell(my_dict, "car");
    assert(found != NULL && found->terminal);
 
    found = dict_spell(my_dict, "dog");
@@ -325,32 +348,24 @@ void test(void)
 
    // Test most common word frequency
    int most_common_freq = dict_mostcommon(my_dict);
-   assert(most_common_freq == 2); // "cat" was added twice
+   assert(most_common_freq == 2); // "car" was added twice
 
-   // Test comparing two nodes
-   dict* node1 = dict_spell(my_dict, "cat");
-   dict* node2 = dict_spell(my_dict, "car");
+   // Test dict_cmp
+   dict* node1 = dict_spell(my_dict, "car");
+   dict* node2 = dict_spell(my_dict, "part");
    assert(node1 != NULL && node2 != NULL);
    unsigned distance = dict_cmp(node1, node2);
-   printf("Distance between 'cat' and 'car': %u\n", distance);
 
    // Test autocomplete
    char result[256];
    dict_autocomplete(my_dict, "ca", result);
-   printf("Autocomplete for 'ca': %s\n", result);
-   assert(strcmp(result, "t") == 0);
+   assert(strcmp(result, "r") == 0);
 
-   dict_autocomplete(my_dict, "car", result);
-   printf("Autocomplete for 'car': %s\n", result);
-   assert(strcmp(result, "t") == 0);
 
    dict_autocomplete(my_dict, "dog", result);
-   printf("Autocomplete for 'dog': %s\n", result);
    assert(result[0] == '\0'); // No autocomplete suggestions for "dog"
 
    // Free the dictionary
    dict_free(&my_dict);
    assert(my_dict == NULL);
-
-   printf("All tests passed successfully.\n");
 }

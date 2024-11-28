@@ -1,51 +1,52 @@
 # Extension Description
 
-## What was added?
-1. Fuzzy Word Search:
-   - Introduced 'dict_fuzzy_match' to enable approximate word matching.
-   - Allows searching for words with minor typos or partial matches, configurable by edit distance.
-2. Optimizations to Existing Functions:
-   - 'dict_addword': Improved handling of duplicate words and memory allocation.
-   - 'dict_autocomplete': Enhanced prefix matching to return the most frequent word efficiently.
+## Introduction
+This extension explores an alternative implementation of the dictionary functionality provided by the original 't27.c' file. Instead of using a 27-way tree, I employed a hash table data structure to store and manage words. The implementation is compatible with the standard interface expected by the 'driverext.c' file, ensuring that core dictionary operations like adding words, spell-checking, and counting words work seamlessly.
 
+## Motivation
+The primary goal of this extension was to investigate the advantages and limitations of using a hash table instead of a 27-way tree. While the 27-way tree is efficient for operations related to prefix matching and structured navigation, a hash table can provide faster lookups and simpler implementation for basic dictionary functionalities. This alternative approach highlights the trade-offs between structured tree-based implementations and hash-based data structures.
 
-## How it was implemented?
-1. Fuzzy Word Search:
-   - Implemented 'dict_fuzzy_match' in 'ext.c' using a recursive helper function to calculate edit distance during tree traversal.
-   - Returns the most similar word based on frequency and edit distance.
+## Implementation Details
+1. Data Structure:
+   - A hash table was chosen for its average-case constant-time complexity for insertion, deletion, and lookup operations.
+   - Each bucket of the hash table contains a linked list to handle collisions using separate chaining.
 
-2. Enhanced Autocomplete:
-   - Improved 'dict_autocomplete' to prioritize frequent words for a given prefix.
-   - Optimized memory usage during recursion with a static buffer.
+2. Key Functions:
+   - 'dict_addword': Converts words to lowercase before inserting them into the hash table to ensure case-insensitive matching.
+   - 'dict_spell': Searches for a word in the hash table, ensuring exact matches.
+   - 'dict_wordcount': Traverses all buckets of the hash table to count the total words stored.
+   - 'dict_free': Frees memory allocated for the hash table and its elements, preventing memory leaks.
 
-3. Backward Compatibility:
-   - Ensured all function prototypes in 'ext.h' remain consistent with 't27.h', allowing integration with 'driverext.c'.
+3. Compatibility:
+   - The implementation adheres to the function prototypes provided in 't27.h', ensuring compatibility with 'driverext.c' without any modifications.
+   - Functions like 'dict_nodecount', 'dict_cmp', and 'dict_autocomplete' were excluded since they rely on tree-specific structures and behavior.
 
+## Comparison with the Original 27-Way Tree
+### Advantages of Hash Table:
+1. Speed: Hash tables generally provide faster lookups for exact matches compared to tree traversal.
+2. Simplicity: The implementation is straightforward, especially for basic operations like adding and finding words.
+3. Space Efficiency: For sparse dictionaries, hash tables can use less memory as they avoid storing intermediate nodes that do not correspond to any word.
+
+### Disadvantages of Hash Table:
+1. No Structure: Hash tables do not inherently support operations like prefix matching or autocomplete.
+2. Collision Handling: Performance can degrade if the hash function distributes words unevenly, leading to long chains.
+3. Memory Overhead: The use of linked lists for collision handling can lead to increased memory usage compared to balanced trees.
+
+### Comparison Metrics:
+- Time Complexity:
+  - Hash Table: O(1) average for insertion and lookup.
+  - 27-Way Tree: O(k) for insertion and lookup, where k is the length of the word.
+- Space Complexity:
+  - Hash Table: O(n+m), where n is the number of words and m is the size of the hash table.
+  - 27-Way Tree: O(n*k), accounting for the hierarchical structure.
 
 ## Challenges and Lessons Learned
-1. Adhering to Coding Standards:
-   - In my previous assignments, I often neglected the **house-style** requirements, which led to inconsistent indentation, excessive use of magic numbers, and lack of proper resource management.This time, I strictly adhered to the standards.
-   - Following these guidelines taught me the importance of consistent formatting, clear structure, and proper memory management, which significantly improved the quality of my code.
-
-2. Algorithm Design:
-   - Implementing fuzzy search provided valuable experience with recursive algorithms and handling complex string matching problems.
-
-3. Code Optimization:
-   - Optimizing existing functions helped me learn how to make code more efficient while maintaining clarity and maintainability.
-
-
-## Future Improvements
-1. Enhanced Fuzzy Search:
-   - Add support for returning multiple matches with tied edit distances.
-   - Further optimize performance for larger datasets.
-2. Batch Operations:
-   - Introduce bulk word addition or batch query functionalities.
-3. Advanced Analytics:
-   - Provide insights like common prefixes, average word lengths, or statistical analyses.
-
+1. Case Sensitivity: Ensuring that the hash table handled case-insensitive operations required careful preprocessing of input strings.
+2. Collision Management: Designing an efficient collision resolution strategy was crucial for maintaining performance.
+3. Compatibility: Adhering to the predefined interface in 't27.h' required thoughtful mapping of tree-based operations to a hash-based system.
 
 ## Conclusion
-This extension improves the original 't27' dictionary by introducing fuzzy search and refining autocomplete functionality. The process of adhering to coding standards and optimizing existing features has deepened my understanding of writing robust, maintainable, and high-quality code. This project combines practical enhancements with disciplined coding practices to deliver meaningful results.
+This extension demonstrates that hash tables are a viable alternative to 27-way trees for implementing basic dictionary functionalities. While hash tables excel in speed and simplicity, they lack the structural benefits that make trees suitable for advanced operations like prefix matching and autocomplete. By exploring this alternative, I gained a deeper understanding of the trade-offs between different data structures and their impact on performance, memory usage, and implementation complexity.
 
 
 

@@ -1,0 +1,52 @@
+# Extension Description
+
+## What was added?
+1. Fuzzy Word Search:
+   - Introduced 'dict_fuzzy_match' to enable approximate word matching.
+   - Allows searching for words with minor typos or partial matches, configurable by edit distance.
+2. Optimizations to Existing Functions:
+   - 'dict_addword': Improved handling of duplicate words and memory allocation.
+   - 'dict_autocomplete': Enhanced prefix matching to return the most frequent word efficiently.
+
+
+## How it was implemented?
+1. Fuzzy Word Search:
+   - Implemented 'dict_fuzzy_match' in 'ext.c' using a recursive helper function to calculate edit distance during tree traversal.
+   - Returns the most similar word based on frequency and edit distance.
+
+2. Enhanced Autocomplete:
+   - Improved 'dict_autocomplete' to prioritize frequent words for a given prefix.
+   - Optimized memory usage during recursion with a static buffer.
+
+3. Backward Compatibility:
+   - Ensured all function prototypes in 'ext.h' remain consistent with 't27.h', allowing integration with 'driverext.c'.
+
+
+## Challenges and Lessons Learned
+1. Adhering to Coding Standards:
+   - In my previous assignments, I often neglected the **house-style** requirements, which led to inconsistent indentation, excessive use of magic numbers, and lack of proper resource management.This time, I strictly adhered to the standards.
+   - Following these guidelines taught me the importance of consistent formatting, clear structure, and proper memory management, which significantly improved the quality of my code.
+
+2. Algorithm Design:
+   - Implementing fuzzy search provided valuable experience with recursive algorithms and handling complex string matching problems.
+
+3. Code Optimization:
+   - Optimizing existing functions helped me learn how to make code more efficient while maintaining clarity and maintainability.
+
+
+## Future Improvements
+1. Enhanced Fuzzy Search:
+   - Add support for returning multiple matches with tied edit distances.
+   - Further optimize performance for larger datasets.
+2. Batch Operations:
+   - Introduce bulk word addition or batch query functionalities.
+3. Advanced Analytics:
+   - Provide insights like common prefixes, average word lengths, or statistical analyses.
+
+
+## Conclusion
+This extension improves the original 't27' dictionary by introducing fuzzy search and refining autocomplete functionality. The process of adhering to coding standards and optimizing existing features has deepened my understanding of writing robust, maintainable, and high-quality code. This project combines practical enhancements with disciplined coding practices to deliver meaningful results.
+
+
+
+

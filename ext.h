@@ -1,25 +1,22 @@
 #ifndef EXT_H
 #define EXT_H
 
-#include <stdbool.h>
+#include <stdbool.h> 
+#include <stdio.h>   
+#include <stdlib.h>  
+#include <string.h>  
+#include <assert.h>  
+#include "ext.h"     
 
-#define ALPHA 27 // 'a'-'z' and apostrophe
+// Define the dictionary type as a hash table
+typedef struct HashTable dict;
 
-typedef struct dict {
-   struct dict* dwn[ALPHA]; // Children nodes
-   struct dict* up;         // Parent node
-   bool terminal;           // Marks end of a word
-   int freq;                // Frequency of the word
-} dict;
+// Function prototypes
+dict* dict_init(void);                        // Initialize a hash table
+bool dict_addword(dict* p, const char* wd);   // Add a word to the hash table
+void dict_free(dict** p);                     // Free the hash table
+int dict_wordcount(const dict* p);            // Count the total words
+dict* dict_spell(const dict* p, const char* wd); // Check if a word exists
+int dict_mostcommon(const dict* p);           // Find the frequency of the most common word
 
-// Existing function prototypes
-dict* dict_init(void);
-bool dict_addword(dict* p, const char* wd);
-void dict_free(dict** d);
-int dict_wordcount(const dict* p);
-bool dict_autocomplete(const dict* p, const char* prefix, char* ret);
-
-// New function prototype for fuzzy search
-bool dict_fuzzy_match(const dict* p, const char* target, int max_diff, char* best_match);
-
-#endif
+#endif // EXT_H
